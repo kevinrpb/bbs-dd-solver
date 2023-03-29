@@ -1,5 +1,5 @@
-import GameBoard, { BoardCell, BoardSymbol } from './board'
-import { BOARD_SIZE } from './constants'
+import GameBoard, { BoardCell } from './board'
+import { BOARD_SIZE, BoardSymbol } from './constants'
 
 /**
  * Verifies whether the board is valid.

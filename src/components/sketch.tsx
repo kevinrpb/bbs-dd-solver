@@ -57,6 +57,8 @@ export const SimpleSketch: React.FC<SimpleSketchProps> = ({ id, className = "", 
         mouseClicked(p5, canvasRef.current, event)
       })
 
+    p5.frameRate(20)
+
     if (setup) setup(p5, canvasRef.current)
   }
 
@@ -68,9 +70,6 @@ export const SimpleSketch: React.FC<SimpleSketchProps> = ({ id, className = "", 
     if (p5.width != width || p5.height != height) {
       p5.resizeCanvas(width, height)
     }
-
-    p5.background('gray')
-    p5.translate(width/2, height/2)
 
     if (draw) draw(p5, canvasRef.current)
   }

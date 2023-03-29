@@ -1,13 +1,7 @@
-import { parseBoard, parseCells } from './parse'
-import { toRaw, transposeBoard } from './transform'
-import { verifyBoard } from './verify'
-
-export enum BoardSymbol {
-  EMPTY = '0',
-  WALL = 'X',
-  ENEMY = 'E',
-  CHEST = 'C',
-}
+import { BoardSymbol } from '@/game/constants'
+import { parseBoard, parseCells } from '@/game/parse'
+import { toRaw, transposeBoard } from '@/game/transform'
+import { verifyBoard } from '@/game/verify'
 
 export interface BoardCell {
   i: number

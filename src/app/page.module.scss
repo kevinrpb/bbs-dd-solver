@@ -1,6 +1,32 @@
 .main {
+  display: grid;
+  grid-template-areas:
+    "setup preview"
+    "rest rest"
+  ;
+  grid-template-columns: 1fr 1fr;
+  // place-items: center;
+
   .react-p5 {
-    height: 300px;
+    height: 100%;
+    width: 100%;
     overflow: hidden;
+  }
+
+  .sketch-wrapper {
+    width: 42.5vw;
+    height: 42.5vw;
+  }
+
+  #setup {
+    grid-area: setup;
+    place-self: end;
+    margin-right: 2.5vw;
+  }
+
+  #preview {
+    grid-area: preview;
+    place-self: start;
+    margin-left: 2.5vw;
   }
 }

@@ -50,3 +50,17 @@ a {
     color-scheme: dark;
   }
 }
+
+body {
+  display: flex;
+  flex-flow: column wrap;
+}
+
+header {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+  height: 3rem;
+  padding: 0.5rem;
+}

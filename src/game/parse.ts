@@ -1,10 +1,12 @@
-import { BoardCell, BoardSymbol } from './board'
-import { BOARD_SIZE } from './constants'
+import { BoardCell } from '@/game/board'
+import { AllBoardSymbols, BOARD_SIZE, BoardSymbol, BoardSymbolReverse } from '@/game/constants'
+
+
 
 export const parseBoard = (
   source: string,
   size: number = BOARD_SIZE,
-  allowedSymbols: string[] = Object.values(BoardSymbol)
+  allowedSymbols: string[] = AllBoardSymbols
 ): string[][] => {
   const rows = source
     // Split into rows
@@ -36,10 +38,6 @@ export const parseBoard = (
 
   return rows
 }
-
-const BoardSymbolReverse: Map<string, BoardSymbol> = new Map(
-  Object.values(BoardSymbol).map((item) => [item.toString(), item])
-)
 
 export const parseCells = (matrix: string[][]): BoardCell[] =>
   matrix.flatMap((row, i) =>

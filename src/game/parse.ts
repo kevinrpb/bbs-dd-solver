@@ -1,8 +1,6 @@
 import { BoardCell } from '@/game/board'
 import { AllBoardSymbols, BOARD_SIZE, BoardSymbol, BoardSymbolReverse } from '@/game/constants'
 
-
-
 export const parseBoard = (
   source: string,
   size: number = BOARD_SIZE,

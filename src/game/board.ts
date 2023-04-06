@@ -1,4 +1,4 @@
-import { BoardSymbol } from '@/game/constants'
+import { BoardSymbol, BoardSymbolReverse } from '@/game/constants'
 import { parseBoard, parseCells } from '@/game/parse'
 import { toRaw, transposeBoard } from '@/game/transform'
 import { verifyBoard } from '@/game/verify'
@@ -24,6 +24,15 @@ export class GameBoard {
     this.transposedBoard = transposeBoard(this.board)
     this.rawBoard = toRaw(this.board)
     this.cells = parseCells(this.board)
+  }
+
+  public set(i: number, j: number, symbol: BoardSymbol) {
+    this.board[i][j] = symbol
+    this.setup()
+  }
+
+  public get(i: number, j: number): BoardSymbol {
+    return BoardSymbolReverse.get(this.board[i][j])!
   }
 
   public getMatrix() {

@@ -1,11 +1,13 @@
 'use client'
 import React from 'react'
 
-import SimpleSketch, { Canvas, Context } from '@/components/sketch'
+import SimpleSketch, { Canvas, Context, MousedClickedEvent } from '@/components/sketch'
 
 import styles from './page.module.scss'
 import GameBoard from '@/game/board'
-import { BOARD_SIZE } from '@/game/constants'
+import { BOARD_SIZE, BoardSymbol, BoardSymbolCycle, BoardSymbolCycleReverse } from '@/game/constants'
+import { drawBoard, drawClues } from '@/graphics/board'
+import { Orientation } from '@/graphics/primitives'
 
 const initialBoard = new GameBoard(`
   00000000
@@ -26,47 +28,95 @@ export default function Home() {
   const [hClues, setHClues] = React.useState<number[]>(initialHClues)
   const [vClues, setVClues] = React.useState<number[]>(initialVClues)
 
+  const updateHClue = React.useCallback(
+    (i: number, reverse: boolean = false) => {
+      let clues = hClues
+
+      const current = hClues[i]
+      const next = (current + (reverse ? -1 : 1)) % BOARD_SIZE
+
+      clues[i] = next
+
+      setHClues(clues)
+    },
+    [hClues]
+  )
+
+  const updateVClue = React.useCallback(
+    (i: number, reverse: boolean = false) => {
+      let clues = vClues
+
+      const current = vClues[i]
+      const next = (current + (reverse ? -1 : 1)) % BOARD_SIZE
+
+      clues[i] = next
+
+      setVClues(clues)
+    },
+    [vClues]
+  )
+
+  const updateBoardCell = React.useCallback(
+    (i: number, j: number, reverse: boolean = false) => {
+      const current = board.current.get(i, j)
+      const next = reverse
+        ? BoardSymbolCycleReverse[current]
+        : BoardSymbolCycle[current]
+
+      board.current.set(i, j, next)
+    },
+    [board]
+  )
+
+  const mouseClicked = React.useCallback(
+    (context: Context, canvas: Canvas, event: MousedClickedEvent) => {
+      const matrix = board.current.getMatrix()
+      const cellSize = context.width / (BOARD_SIZE + 1)
+      const x = Math.floor(event.offsetX / cellSize)
+      const y = Math.floor(event.offsetY / cellSize)
+
+      if (x == 0 && y == 0) {
+        return
+      } else if (x == 0) {
+        // We clicked a vClue
+        const i = y - 1
+
+        updateVClue(i, event.ctrlKey)
+        console.log(`clicked <${vClues[i]}> vClues[${i}]`)
+      } else if (y == 0) {
+        // We clicked a hClue
+        const i = x - 1
+
+        updateHClue(i, event.ctrlKey)
+        console.log(`clicked <${hClues[i]}> hClues[${i}]`)
+      } else {
+        // we clicked the board
+        const i = y - 1
+        const j = x - 1
+
+        updateBoardCell(i, j, event.ctrlKey)
+        console.log(`clicked <${matrix[i][j]}> board[${i}][${j}]`)
+      }
+    },
+    [board, hClues, vClues, updateBoardCell, updateVClue, updateHClue]
+  )
+
   const draw = React.useCallback(
     (context: Context, canvas: Canvas) => {
       const matrix = board.current.getMatrix()
-      const x0 = 0
-      const y0 = 0
-
       const cellSize = context.width / (BOARD_SIZE + 1)
 
+      // Common settings
       context.background(51)
+      context.textAlign(context.CENTER, context.CENTER)
+      context.textSize(20)
 
-      // Draw h clues
-      {
-        let x = 1
-        for (const clue of hClues) {
-          let xOffset = x0 + x * cellSize
+      // Draw clues
+      drawClues(context, hClues, { x: cellSize, y: 0 }, cellSize, Orientation.HORIZONTAL)
+      drawClues(context, vClues, { x: 0, y: cellSize }, cellSize, Orientation.VERTICAL)
 
-          // Text
-          context.fill('white')
-          context.stroke('white')
-          context.textSize(20)
-          context.text(clue, xOffset + cellSize / 3, y0 + cellSize / 1.5)
-
-          x += 1
-        }
-      }
-
-      // Draw v clues
-      {
-        let y = 1
-        for (const clue of vClues) {
-          let yOffset = y0 + y * cellSize
-
-          // Text
-          context.fill('white')
-          context.stroke('white')
-          context.textSize(20)
-          context.text(clue, x0 + cellSize / 3, yOffset + cellSize / 1.5)
-
-          y += 1
-        }
-      }
+      // Draw board
+      drawBoard(context, matrix, { x: cellSize, y: cellSize }, cellSize)
 
       // Draw sketch & board border
       context.noFill()
@@ -80,7 +130,12 @@ export default function Home() {
   return (
     <main className={styles.main}>
       <div id={styles['setup']} className={styles['sketch-wrapper']}>
-        <SimpleSketch id='setup-sketch' className={styles['react-p5']} draw={draw} />
+        <SimpleSketch
+          id='setup-sketch'
+          className={styles['react-p5']}
+          draw={draw}
+          mouseClicked={mouseClicked}
+        />
       </div>
       <div id={styles['preview']} className={styles['sketch-wrapper']}>
         <SimpleSketch id='preview-sketch' className={styles['react-p5']} draw={draw} />

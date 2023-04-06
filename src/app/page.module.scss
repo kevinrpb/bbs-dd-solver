@@ -5,7 +5,6 @@
     "rest rest"
   ;
   grid-template-columns: 1fr 1fr;
-  // place-items: center;
 
   .react-p5 {
     height: 100%;
@@ -28,5 +27,28 @@
     grid-area: preview;
     place-self: start;
     margin-left: 2.5vw;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  .main {
+    grid-template-areas:
+      "setup"
+      "preview"
+      "rest"
+    ;
+    grid-template-columns: 1fr;
+    gap: 2.5vw;
+
+    .sketch-wrapper {
+      width: 95vw;
+      height: 95vw;
+    }
+
+    #setup, #preview {
+      place-self: center;
+      margin-right: 0;
+      margin-left: 0;
+    }
   }
 }

@@ -5,9 +5,16 @@ import SimpleSketch, { Canvas, Context, MousedClickedEvent } from '@/components/
 
 import styles from './page.module.scss'
 import GameBoard from '@/game/board'
-import { BOARD_SIZE, BoardSymbol, BoardSymbolCycle, BoardSymbolCycleReverse } from '@/game/constants'
-import { drawBoard, drawClues } from '@/graphics/board'
+import {
+  BOARD_SIZE,
+  BoardSymbol,
+  BoardSymbolCycle,
+  BoardSymbolCycleReverse,
+} from '@/game/constants'
+import { drawAll } from '@/graphics/board'
 import { Orientation } from '@/graphics/primitives'
+
+export type Clue = [number, boolean]
 
 const initialBoard = new GameBoard(`
   00000000
@@ -20,52 +27,85 @@ const initialBoard = new GameBoard(`
   0000000E
 `)
 
-const initialHClues = [1, 4, 2, 7, 0, 4, 4, 4]
-const initialVClues = [3, 2, 5, 3, 4, 1, 4, 4]
+const initialHClues: Clue[] = [
+  [1, false],
+  [4, false],
+  [2, false],
+  [7, false],
+  [0, false],
+  [4, false],
+  [4, false],
+  [4, false],
+]
+
+const initialVClues: Clue[] = [
+  [3, false],
+  [2, false],
+  [5, false],
+  [3, false],
+  [4, false],
+  [1, false],
+  [4, false],
+  [4, false],
+]
 
 export default function Home() {
   const board = React.useRef<GameBoard>(initialBoard)
-  const [hClues, setHClues] = React.useState<number[]>(initialHClues)
-  const [vClues, setVClues] = React.useState<number[]>(initialVClues)
+  const [hClues, setHClues] = React.useState<Clue[]>(initialHClues)
+  const [vClues, setVClues] = React.useState<Clue[]>(initialVClues)
+
+  const calculateClues = React.useCallback(() => {
+    const hExpected = board.current.getExpectedClues(Orientation.HORIZONTAL)
+    const vExpected = board.current.getExpectedClues(Orientation.VERTICAL)
+
+    const hNew: Clue[] = hClues.map(([clue, _], i) => [clue, clue == hExpected[i]])
+    const vNew: Clue[] = vClues.map(([clue, _], i) => [clue, clue == vExpected[i]])
+
+    setHClues(hNew)
+    setVClues(vNew)
+  }, [board, hClues, vClues])
+
+  React.useEffect(calculateClues, [calculateClues])
 
   const updateHClue = React.useCallback(
     (i: number, reverse: boolean = false) => {
       let clues = hClues
 
-      const current = hClues[i]
+      const [current, state] = hClues[i]
       const next = (current + (reverse ? -1 : 1)) % BOARD_SIZE
 
-      clues[i] = next
+      clues[i] = [next, state]
 
       setHClues(clues)
+      calculateClues()
     },
-    [hClues]
+    [hClues, calculateClues]
   )
 
   const updateVClue = React.useCallback(
     (i: number, reverse: boolean = false) => {
       let clues = vClues
 
-      const current = vClues[i]
+      const [current, state] = vClues[i]
       const next = (current + (reverse ? -1 : 1)) % BOARD_SIZE
 
-      clues[i] = next
+      clues[i] = [next, state]
 
       setVClues(clues)
+      calculateClues()
     },
-    [vClues]
+    [vClues, calculateClues]
   )
 
   const updateBoardCell = React.useCallback(
     (i: number, j: number, reverse: boolean = false) => {
       const current = board.current.get(i, j)
-      const next = reverse
-        ? BoardSymbolCycleReverse[current]
-        : BoardSymbolCycle[current]
+      const next = reverse ? BoardSymbolCycleReverse[current] : BoardSymbolCycle[current]
 
       board.current.set(i, j, next)
+      calculateClues()
     },
-    [board]
+    [board, calculateClues]
   )
 
   const mouseClicked = React.useCallback(
@@ -103,28 +143,9 @@ export default function Home() {
 
   const draw = React.useCallback(
     (context: Context, canvas: Canvas) => {
-      const matrix = board.current.getMatrix()
-      const cellSize = context.width / (BOARD_SIZE + 1)
-
-      // Common settings
-      context.background(51)
-      context.textAlign(context.CENTER, context.CENTER)
-      context.textSize(20)
-
-      // Draw clues
-      drawClues(context, hClues, { x: cellSize, y: 0 }, cellSize, Orientation.HORIZONTAL)
-      drawClues(context, vClues, { x: 0, y: cellSize }, cellSize, Orientation.VERTICAL)
-
-      // Draw board
-      drawBoard(context, matrix, { x: cellSize, y: cellSize }, cellSize)
-
-      // Draw sketch & board border
-      context.noFill()
-      context.stroke(100)
-      context.rect(0, 0, context.width, context.height)
-      context.rect(cellSize, cellSize, cellSize * BOARD_SIZE, cellSize * BOARD_SIZE)
+      drawAll(context, board.current, hClues, vClues)
     },
-    [hClues, vClues]
+    [board, hClues, vClues]
   )
 
   return (

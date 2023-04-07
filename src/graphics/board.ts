@@ -1,7 +1,9 @@
 import { Context } from '@/components/sketch'
 
 import { Orientation, Point } from './primitives'
-import { BoardSymbol } from '@/game/constants'
+import { BOARD_SIZE, BoardSymbol } from '@/game/constants'
+import GameBoard from '@/game/board'
+import { Clue } from '@/app/page'
 
 const SymbolColors: Record<string, string> = {
   [BoardSymbol.CHEST]: '#F2E1AF',
@@ -12,7 +14,7 @@ const SymbolColors: Record<string, string> = {
 
 export const drawClues = (
   context: Context,
-  clues: number[],
+  clues: Clue[],
   origin: Point,
   cellSize: number,
   orientation: Orientation
@@ -21,9 +23,9 @@ export const drawClues = (
   x += cellSize / 2
   y += cellSize / 2
 
-  for (const clue of clues) {
-    context.fill('white')
-    context.stroke('white')
+  for (const [clue, state] of clues) {
+    context.fill(state ? 'grey' : 'white')
+    context.stroke(state ? 'grey' : 'white')
     context.text(clue, x, y)
 
     if (Orientation.HORIZONTAL === orientation) {
@@ -67,4 +69,27 @@ export const drawBoard = (
     cx = x + halCell
     cy += cellSize
   }
+}
+
+export const drawAll = (context: Context, board: GameBoard, hClues: Clue[], vClues: Clue[]) => {
+  const matrix = board.getMatrix()
+  const cellSize = context.width / (BOARD_SIZE + 1)
+
+  // Common settings
+  context.background(51)
+  context.textAlign(context.CENTER, context.CENTER)
+  context.textSize(20)
+
+  // Draw clues
+  drawClues(context, hClues, { x: cellSize, y: 0 }, cellSize, Orientation.HORIZONTAL)
+  drawClues(context, vClues, { x: 0, y: cellSize }, cellSize, Orientation.VERTICAL)
+
+  // Draw board
+  drawBoard(context, matrix, { x: cellSize, y: cellSize }, cellSize)
+
+  // Draw sketch & board border
+  context.noFill()
+  context.stroke(100)
+  context.rect(0, 0, context.width, context.height)
+  context.rect(cellSize, cellSize, cellSize * BOARD_SIZE, cellSize * BOARD_SIZE)
 }

@@ -41,7 +41,13 @@ export interface SimpleSketchProps {
   draw?: (context: Context, canvas: Canvas) => void
 }
 
-export const SimpleSketch: React.FC<SimpleSketchProps> = ({ id, className = "", setup, draw, mouseClicked }) => {
+export const SimpleSketch: React.FC<SimpleSketchProps> = ({
+  id,
+  className = '',
+  setup,
+  draw,
+  mouseClicked,
+}) => {
   const canvasParentRef = React.useRef<Element | undefined>(undefined)
   const canvasRef = React.useRef<p5.Element | undefined>(undefined)
 
@@ -56,6 +62,9 @@ export const SimpleSketch: React.FC<SimpleSketchProps> = ({ id, className = "", 
 
         mouseClicked(p5, canvasRef.current, event)
       })
+
+    // This disables text selection on canvas double click
+    canvasRef.current.elt.onselectstart = () => false
 
     p5.frameRate(20)
 

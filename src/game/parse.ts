@@ -49,3 +49,6 @@ export const parseCells = (matrix: string[][]): BoardCell[] =>
       return { i, j, symbol }
     })
   )
+
+export const parseClues = (matrix: string[][]): number[] =>
+  matrix.map((row) => row.filter((cell) => BoardSymbolReverse.get(cell) == BoardSymbol.WALL).length)

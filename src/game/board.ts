@@ -10,6 +10,8 @@ export interface BoardCell {
   symbol: BoardSymbol
 }
 
+export type Clue = [number, boolean]
+
 export class GameBoard {
   private board: string[][]
   private transposedBoard!: string[][]

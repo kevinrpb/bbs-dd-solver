@@ -33,13 +33,19 @@ export class GameBoard {
     this.vCluesExpected = parseClues(this.board)
   }
 
-  public set(i: number, j: number, symbol: BoardSymbol) {
+  public setCell(i: number, j: number, symbol: BoardSymbol) {
     this.board[i][j] = symbol
     this.setup()
   }
 
-  public get(i: number, j: number): BoardSymbol {
+  public getCell(i: number, j: number): BoardSymbol {
     return BoardSymbolReverse.get(this.board[i][j])!
+  }
+
+  public setBoard(matrix: string[][]) {
+    // TODO: verify it's valid?
+    this.board = matrix
+    this.setup()
   }
 
   public getMatrix(): string[][] {

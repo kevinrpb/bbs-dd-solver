@@ -16,6 +16,7 @@ export enum WorkerSolver {
 }
 
 export interface WorkerMessage {
+  id: 'workerMessage'
   state: WorkerState
   matrix?: string[][]
   error?: Error
@@ -32,32 +33,79 @@ export interface AppMessage {
 
 let _currentSolver: GameSolver | undefined
 
-const solverUpdate = (matrix: string[][]) => {}
+const sendUpdate = (matrix?: string[][]) => {
+  const message: WorkerMessage = {
+    id: 'workerMessage',
+    state: WorkerState.RUNNING,
+    matrix,
+  }
 
-const solverEnd = (matrix?: string[][]) => {}
+  postMessage(message)
+}
+
+const sendEnd = (matrix?: string[][]) => {
+  const message: WorkerMessage = {
+    id: 'workerMessage',
+    state: WorkerState.FINISHED,
+    matrix,
+  }
+
+  postMessage(message)
+}
+
+const sendError = (error?: Error) => {
+  const message: WorkerMessage = {
+    id: 'workerMessage',
+    state: WorkerState.ERROR,
+    error,
+  }
+
+  postMessage(message)
+}
+
+const sendIdle = () => {
+  const message: WorkerMessage = {
+    id: 'workerMessage',
+    state: WorkerState.IDLE,
+  }
+
+  postMessage(message)
+}
 
 const handleMessage = async (message: AppMessage) => {
   const { start, solver, matrix, hClues, vClues } = message
 
-  if (start && solver && matrix && hClues && vClues) {
+  if (
+    start &&
+    solver !== undefined &&
+    matrix !== undefined &&
+    hClues !== undefined &&
+    vClues !== undefined
+  ) {
     switch (solver) {
       case WorkerSolver.BACKTRACKING:
-        _currentSolver = new BacktrackingSolver()
+        _currentSolver = new BacktrackingSolver({
+          updateInterval: 500,
+          updateCallback: sendUpdate,
+          endCallback: sendEnd,
+        })
         break
     }
-    console.log(_currentSolver)
 
-    await _currentSolver?.solve(matrix, hClues, vClues, solverUpdate, solverEnd)
+    console.log(`[Worker] Calling solver`)
+    sendUpdate()
 
-    postMessage({ state: WorkerState.RUNNING })
+    await _currentSolver?.solve(matrix, hClues, vClues)
   } else if (start) {
-    // TODO: error
-    postMessage({ state: WorkerState.ERROR })
+    console.error(`[Worker] Tried to start but was missing inputs`, message)
+    // TODO: add error to message
+    sendError()
   } else {
-    await _currentSolver?.stop()
+    console.log(`[Worker] Stopping solver`)
+    sendIdle()
 
+    await _currentSolver?.stop()
     _currentSolver = undefined
-    postMessage({ state: WorkerState.IDLE })
   }
 }
 
@@ -69,7 +117,18 @@ if (self) {
       return
     }
 
-    console.log(`[Worker] Got event ${JSON.stringify(message)}`)
+    console.log(`[Worker] Got message ${JSON.stringify(message.id)}`)
     handleMessage(message)
+      .then(() => {
+        console.log(`[Worker] Finished handling message`)
+
+        _currentSolver = undefined
+        setTimeout(() => sendIdle(), 200)
+      })
+      .catch((error) => {
+        console.log(`[Worker] Error while handling message`)
+        console.error(error)
+        sendError(error)
+      })
   })
 }

@@ -4,10 +4,8 @@ export abstract class GameSolver {
   abstract solve(
     matrix: string[][],
     hClues: Clue[],
-    vClues: Clue[],
-    updateCallback: (matrix: string[][]) => void,
-    endCallback: (matrix?: string[][]) => void
-  ): Promise<boolean>
+    vClues: Clue[]
+  ): Promise<string[][] | undefined>
 
   abstract stop(): Promise<void>
 }

@@ -3,9 +3,10 @@ lockfileVersion: 5.4
 specifiers:
   '@tauri-apps/cli': ^1.2.3
   '@types/node': 18.15.10
-  '@types/p5': 1.3.3
+  '@types/p5': ^1.6.0
   '@types/react': 18.0.29
   '@types/react-dom': 18.0.11
+  '@types/serviceworker': ^0.0.67
   eslint: 8.36.0
   eslint-config-next: 13.2.4
   next: 13.2.4
@@ -18,8 +19,10 @@ specifiers:
 
 dependencies:
   '@types/node': 18.15.10
+  '@types/p5': 1.6.0
   '@types/react': 18.0.29
   '@types/react-dom': 18.0.11
+  '@types/serviceworker': 0.0.67
   eslint: 8.36.0
   eslint-config-next: 13.2.4_j4766f7ecgqbon3u7zlxn5zszu
   next: 13.2.4_5y7qh6ykubtj2qr2evk3di7hpa
@@ -32,7 +35,6 @@ dependencies:
 
 devDependencies:
   '@tauri-apps/cli': 1.2.3
-  '@types/p5': 1.3.3
 
 packages:
 
@@ -377,6 +379,11 @@ packages:
 
   /@types/p5/1.3.3:
     resolution: {integrity: sha512-PBSFnX6IgV6Pqlx9wocUjSkGlm1I1ymz9tEiTbdNCqig6FOGiWcVUHx13TXRTBfRIhZC9+MqqgztMsgzpueaUg==}
+    dev: false
+
+  /@types/p5/1.6.0:
+    resolution: {integrity: sha512-1DuGI41woYiMjEGh0hvt1NJPMvjiBHQO/4uKvPCy3IYvytCAq/c3S+0zlRrfhzwVNjydwr2hgkfdBTnptd6nSw==}
+    dev: false
 
   /@types/prop-types/15.7.5:
     resolution: {integrity: sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==}
@@ -398,6 +405,10 @@ packages:
 
   /@types/scheduler/0.16.3:
     resolution: {integrity: sha512-5cJ8CB4yAx7BH1oMvdU0Jh9lrEXyPkar6F9G/ERswkCuvP4KQZfZkSjcMbAICCpQTN4OuZn8tz0HiKv9TGZgrQ==}
+    dev: false
+
+  /@types/serviceworker/0.0.67:
+    resolution: {integrity: sha512-7TCH7iNsCSNb+aUD9M/36TekrWFSLCjNK8zw/3n5kOtRjbLtDfGYMXTrDnGhSfqXNwpqmt9Vd90w5C/ad1tX6Q==}
     dev: false
 
   /@typescript-eslint/parser/5.57.0_j4766f7ecgqbon3u7zlxn5zszu:

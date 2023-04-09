@@ -141,8 +141,14 @@ export default function Home() {
       return
     }
 
-    workerRef.current.onmessage = (event: MessageEvent<WorkerMessage>) => {
-      const { state, matrix } = event.data
+    workerRef.current.onmessage = (event) => {
+      const message: WorkerMessage = event.data
+
+      if (message.id !== 'workerMessage') {
+        return
+      }
+
+      const { state, matrix } = message
 
       if (matrix != undefined) {
         updateBoard(matrix, ['preview'])
@@ -159,6 +165,9 @@ export default function Home() {
           setWorkerRunning(false)
           break
         case WorkerState.IDLE:
+          setWorkerRunning(false)
+          break
+        default:
           setWorkerRunning(false)
           break
       }

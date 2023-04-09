@@ -1,13 +1,19 @@
 import GameBoard, { BoardCell } from './board'
 import { BOARD_SIZE, BoardSymbol } from './constants'
+import { parseCells } from './parse'
 
 /**
  * Verifies whether the board is valid.
  */
-export const verifyBoard = (board: GameBoard) => {
-  // 1. First, verify each cell individually
-  const matrix = board.getMatrix()
+export const verifyBoard = (board: GameBoard): boolean => {
+  return verifyMatrix(board.getMatrix())
+}
 
+/**
+ * Verifies whether the matrix is valid.
+ */
+export const verifyMatrix = (matrix: string[][]) => {
+  // 1. First, verify each cell individually
   for (let i = 0; i < BOARD_SIZE; i++) {
     for (let j = 0; j < BOARD_SIZE; j++) {
       const symbol = matrix[i][j]
@@ -40,7 +46,7 @@ export const verifyBoard = (board: GameBoard) => {
   }
 
   // 2. Verify there is only one, continuous hallway
-  verifyHallway(board)
+  verifyHallway(matrix)
 
   return true
 }
@@ -51,8 +57,9 @@ export const verifyBoard = (board: GameBoard) => {
  * This way, when we are done, if we haven't visited all the empty cells in the board,
  * we can say that there must be more than one hallway.
  */
-const verifyHallway = (board: GameBoard) => {
-  const hallway = board.getCells().filter(({ symbol }) => symbol == BoardSymbol.EMPTY)
+const verifyHallway = (matrix: string[][]) => {
+  const cells: BoardCell[] = parseCells(matrix)
+  const hallway = cells.filter(({ symbol }) => symbol == BoardSymbol.EMPTY)
 
   let queue: BoardCell[] = [hallway[0]]
   let visited: BoardCell[] = []
@@ -149,7 +156,7 @@ const verifyEnemy = (matrix: string[][], i: number, j: number): boolean => {
   const bottomClosed = i + 1 == BOARD_SIZE || matrix[i + 1][j] == BoardSymbol.WALL
   const rightClosed = j + 1 == BOARD_SIZE || matrix[i][j + 1] == BoardSymbol.WALL
 
-  const isDeadEnd = (+!!topClosed) + (+!!leftClosed) + (+!!bottomClosed) + (+!!rightClosed) == 3
+  const isDeadEnd = +!!topClosed + +!!leftClosed + +!!bottomClosed + +!!rightClosed == 3
 
   if (!isDeadEnd) {
     throw new Error(`Enemy verification failed at [${j}, ${i}] (enemy is not in dead end)`)
@@ -180,7 +187,7 @@ const verifyChest = (matrix: string[][], i: number, j: number): boolean => {
   const bottomClosed = i + 1 == BOARD_SIZE || matrix[i + 1][j] == BoardSymbol.WALL
   const rightClosed = j + 1 == BOARD_SIZE || matrix[i][j + 1] == BoardSymbol.WALL
 
-  if ((+!!topClosed) + (+!!leftClosed) + (+!!bottomClosed) + (+!!rightClosed) > 2) {
+  if (+!!topClosed + +!!leftClosed + +!!bottomClosed + +!!rightClosed > 2) {
     throw new Error(`Chest verification failed at [${j}, ${i}] (treasure room is not 3x3)`)
   }
 

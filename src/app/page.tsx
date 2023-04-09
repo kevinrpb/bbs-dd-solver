@@ -12,18 +12,21 @@ import { AppMessage, WorkerMessage, WorkerSolver, WorkerState } from '@/worker'
 
 import styles from './page.module.scss'
 
-const initialBoard = new GameBoard(`
-  00000000
-  0000000E
-  00E00000
-  0000000E
-  00000000
-  0C00000E
-  00000000
-  0000000E
-`)
+const initialBoard = `
+00000000
+0000000E
+00E00000
+0000000E
+00000000
+0C00000E
+00000000
+0000000E
+`
 
-const initialHClues: Clue[] = [
+const initialSetupBoard = new GameBoard(initialBoard)
+const initialPreviewBoard = new GameBoard(initialBoard)
+
+const initialColumnClues: Clue[] = [
   [1, false],
   [4, false],
   [2, false],
@@ -34,7 +37,7 @@ const initialHClues: Clue[] = [
   [4, false],
 ]
 
-const initialVClues: Clue[] = [
+const initialRowClues: Clue[] = [
   [3, false],
   [2, false],
   [5, false],
@@ -47,26 +50,52 @@ const initialVClues: Clue[] = [
 
 type BoardType = 'setup' | 'preview'
 
+const getCluesStates = (board: GameBoard, columnClues: Clue[], rowClues: Clue[]) => {
+  const columnExpected = board.getExpectedClues(Orientation.HORIZONTAL)
+  const rowExpected = board.getExpectedClues(Orientation.VERTICAL)
+
+  const columnNew: Clue[] = columnClues.map(([clue, _], i) => [clue, clue == columnExpected[i]])
+  const rowNew: Clue[] = rowClues.map(([clue, _], i) => [clue, clue == rowExpected[i]])
+
+  return [columnNew, rowNew]
+}
+
 export default function Home() {
   const workerRef = React.useRef<Worker>()
   const [workerRunning, setWorkerRunning] = React.useState<boolean>(false)
 
-  const setupBoard = React.useRef<GameBoard>(initialBoard)
-  const previewBoard = React.useRef<GameBoard>(initialBoard)
+  const setupBoard = React.useRef<GameBoard>(initialSetupBoard)
+  const [setupColumnClues, setSetupColumnClues] = React.useState<Clue[]>(initialColumnClues)
+  const [setupRowClues, setSetupRowClues] = React.useState<Clue[]>(initialRowClues)
 
-  const [hClues, setHClues] = React.useState<Clue[]>(initialHClues)
-  const [vClues, setVClues] = React.useState<Clue[]>(initialVClues)
+  const previewBoard = React.useRef<GameBoard>(initialPreviewBoard)
+  const [previewColumnClues, setPreviewColumnClues] = React.useState<Clue[]>(initialColumnClues)
+  const [previewRowClues, setPreviewRowClues] = React.useState<Clue[]>(initialRowClues)
 
-  const calculateClues = React.useCallback(() => {
-    const hExpected = setupBoard.current.getExpectedClues(Orientation.HORIZONTAL)
-    const vExpected = setupBoard.current.getExpectedClues(Orientation.VERTICAL)
+  const calculateClues = React.useCallback(
+    (types: BoardType[] = ['setup', 'preview']) => {
+      if (types.includes('setup')) {
+        const [columnNew, rowNew] = getCluesStates(
+          setupBoard.current,
+          setupColumnClues,
+          setupRowClues
+        )
+        setSetupColumnClues(columnNew)
+        setSetupRowClues(rowNew)
+      }
 
-    const hNew: Clue[] = hClues.map(([clue, _], i) => [clue, clue == hExpected[i]])
-    const vNew: Clue[] = vClues.map(([clue, _], i) => [clue, clue == vExpected[i]])
-
-    setHClues(hNew)
-    setVClues(vNew)
-  }, [setupBoard, hClues, vClues])
+      if (types.includes('preview')) {
+        const [columnNew, rowNew] = getCluesStates(
+          previewBoard.current,
+          previewColumnClues,
+          previewRowClues
+        )
+        setPreviewColumnClues(columnNew)
+        setPreviewRowClues(rowNew)
+      }
+    },
+    [setupBoard, setupColumnClues, setupRowClues, previewBoard, previewColumnClues, previewRowClues]
+  )
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(calculateClues, [])
@@ -87,45 +116,96 @@ export default function Home() {
   )
 
   const updateBoardCell = React.useCallback(
-    (i: number, j: number, reverse: boolean = false) => {
-      const current = setupBoard.current.getCell(i, j)
-      const next = reverse ? BoardSymbolCycleReverse[current] : BoardSymbolCycle[current]
+    (i: number, j: number, reverse: boolean = false, types: BoardType[] = ['setup', 'preview']) => {
+      if (workerRunning) {
+        return
+      }
 
-      setupBoard.current.setCell(i, j, next)
-      previewBoard.current.setCell(i, j, next)
+      if (types.includes('setup')) {
+        const setupCurrent = setupBoard.current.getCell(i, j)
+        const setupNext = reverse
+          ? BoardSymbolCycleReverse[setupCurrent]
+          : BoardSymbolCycle[setupCurrent]
+        setupBoard.current.setCell(i, j, setupNext)
+      }
+
+      if (types.includes('preview')) {
+        const previewCurrent = previewBoard.current.getCell(i, j)
+        const previewNext = reverse
+          ? BoardSymbolCycleReverse[previewCurrent]
+          : BoardSymbolCycle[previewCurrent]
+        previewBoard.current.setCell(i, j, previewNext)
+      }
+
       calculateClues()
     },
-    [setupBoard, previewBoard, calculateClues]
+    [workerRunning, setupBoard, previewBoard, calculateClues]
   )
 
-  const updateHClue = React.useCallback(
-    (i: number, reverse: boolean = false) => {
-      let clues = hClues
+  const updateColumnClue = React.useCallback(
+    (i: number, reverse: boolean = false, types: BoardType[] = ['setup', 'preview']) => {
+      if (workerRunning) {
+        return
+      }
 
-      const [current, state] = hClues[i]
-      const next = (current + (reverse ? -1 : 1)) % BOARD_SIZE
+      if (types.includes('setup')) {
+        let clues = setupColumnClues
 
-      clues[i] = [next, state]
+        const [current, state] = setupColumnClues[i]
+        const next = (current + (reverse ? -1 : 1)) % BOARD_SIZE
 
-      setHClues(clues)
+        clues[i] = [next, state]
+
+        setSetupColumnClues(clues)
+      }
+
+      if (types.includes('preview')) {
+        let clues = previewColumnClues
+
+        const [current, state] = previewColumnClues[i]
+        const next = (current + (reverse ? -1 : 1)) % BOARD_SIZE
+
+        clues[i] = [next, state]
+
+        setPreviewColumnClues(clues)
+      }
+
       calculateClues()
     },
-    [hClues, calculateClues]
+    [workerRunning, setupColumnClues, previewColumnClues, calculateClues]
   )
 
-  const updateVClue = React.useCallback(
-    (i: number, reverse: boolean = false) => {
-      let clues = vClues
+  const updateRowClue = React.useCallback(
+    (i: number, reverse: boolean = false, types: BoardType[] = ['setup', 'preview']) => {
+      if (workerRunning) {
+        return
+      }
 
-      const [current, state] = vClues[i]
-      const next = (current + (reverse ? -1 : 1)) % BOARD_SIZE
+      if (types.includes('setup')) {
+        let clues = setupRowClues
 
-      clues[i] = [next, state]
+        const [current, state] = setupRowClues[i]
+        const next = (current + (reverse ? -1 : 1)) % BOARD_SIZE
 
-      setVClues(clues)
+        clues[i] = [next, state]
+
+        setSetupRowClues(clues)
+      }
+
+      if (types.includes('preview')) {
+        let clues = previewRowClues
+
+        const [current, state] = previewRowClues[i]
+        const next = (current + (reverse ? -1 : 1)) % BOARD_SIZE
+
+        clues[i] = [next, state]
+
+        setPreviewRowClues(clues)
+      }
+
       calculateClues()
     },
-    [vClues, calculateClues]
+    [workerRunning, setupRowClues, previewRowClues, calculateClues]
   )
 
   React.useEffect(() => {
@@ -152,6 +232,7 @@ export default function Home() {
 
       if (matrix != undefined) {
         updateBoard(matrix, ['preview'])
+        calculateClues(['preview'])
       }
 
       switch (state) {
@@ -172,7 +253,7 @@ export default function Home() {
           break
       }
     }
-  }, [updateBoard, setWorkerRunning])
+  }, [updateBoard, calculateClues, setWorkerRunning])
 
   const startWorker = React.useCallback(() => {
     const matrix = setupBoard.current.getMatrix()
@@ -182,12 +263,12 @@ export default function Home() {
       id: 'appMessage',
       start: true,
       matrix,
-      hClues,
-      vClues,
+      hClues: setupColumnClues,
+      vClues: setupRowClues,
       solver,
     }
     workerRef.current?.postMessage(message)
-  }, [setupBoard, hClues, vClues])
+  }, [setupBoard, setupColumnClues, setupRowClues])
 
   const stopWorker = React.useCallback(() => {
     const message: AppMessage = {
@@ -215,18 +296,18 @@ export default function Home() {
         styles={styles}
         board={setupBoard.current}
         updateBoardCell={updateBoardCell}
-        hClues={hClues}
-        updateHClue={updateHClue}
-        vClues={vClues}
-        updateVClue={updateVClue}
+        hClues={setupColumnClues}
+        updateHClue={updateColumnClue}
+        vClues={setupRowClues}
+        updateVClue={updateRowClue}
       />
 
       <PreviewBoard
         id='preview'
         styles={styles}
         board={previewBoard.current}
-        hClues={hClues}
-        vClues={vClues}
+        hClues={setupColumnClues}
+        vClues={setupRowClues}
       />
     </main>
   )

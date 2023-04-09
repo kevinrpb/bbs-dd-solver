@@ -4,6 +4,6 @@ export interface Point {
 }
 
 export enum Orientation {
-  HORIZONTAL,
-  VERTICAL
+  HORIZONTAL, // Columns
+  VERTICAL, // Rows
 }

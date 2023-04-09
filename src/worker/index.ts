@@ -43,7 +43,7 @@ const sendUpdate = (matrix?: string[][]) => {
   postMessage(message)
 }
 
-const sendEnd = (matrix?: string[][]) => {
+const sendFinished = (matrix?: string[][]) => {
   const message: WorkerMessage = {
     id: 'workerMessage',
     state: WorkerState.FINISHED,
@@ -85,9 +85,9 @@ const handleMessage = async (message: AppMessage) => {
     switch (solver) {
       case WorkerSolver.BACKTRACKING:
         _currentSolver = new BacktrackingSolver({
-          updateInterval: 500,
+          updateInterval: 100,
           updateCallback: sendUpdate,
-          endCallback: sendEnd,
+          endCallback: sendFinished,
         })
         break
     }
@@ -95,7 +95,8 @@ const handleMessage = async (message: AppMessage) => {
     console.log(`[Worker] Calling solver`)
     sendUpdate()
 
-    await _currentSolver?.solve(matrix, hClues, vClues)
+    const solution = await _currentSolver?.solve(matrix, hClues, vClues)
+    sendFinished(solution)
   } else if (start) {
     console.error(`[Worker] Tried to start but was missing inputs`, message)
     // TODO: add error to message

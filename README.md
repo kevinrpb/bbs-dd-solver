@@ -23,12 +23,14 @@ This is toy project that provides solvers for the 'Dungeons & Diagrams' game con
 
 ### UI
 
-- [ ] Choose UI Framework
+- [x] Choose UI Framework -> [NextUI](https://nextui.org/)
+  - Not yet ready, they are [working on a new version](https://github.com/nextui-org/nextui/discussions/1035), with support for Next 13 and other goodies
 - [ ] Solver dropdown
 - [ ] Context messages
 - [ ] ...
 
 ### Internals
 
-- [ ] Cleanup `page.tsx` and better modularize
+- [x] Cleanup `page.tsx`
+  - Moved the boards logic to its own `wrapper.tsx` component. Ideally, we don't need to change this file further.
 - [ ] ...

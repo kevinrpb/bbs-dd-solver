@@ -1,14 +1,9 @@
 'use client'
 import React from 'react'
 
-import SetupBoard from '@/components/boards/setup'
-import PreviewBoard from '@/components/boards/preview'
-
 import GameBoard, { Clue } from '@/game/board'
-import { BOARD_SIZE, BoardSymbolCycle, BoardSymbolCycleReverse } from '@/game/constants'
-import { Orientation } from '@/graphics/primitives'
 
-import { AppMessage, WorkerMessage, WorkerSolver, WorkerState } from '@/worker'
+import { AppMessage, WorkerSolver } from '@/worker'
 
 import styles from './page.module.scss'
 import BoardsWrapper from '@/components/boards/wrapper'

@@ -61,7 +61,7 @@ const BoardsWrapper = ({
   previewRowClues,
   setPreviewRowClues,
 
-  styles
+  styles,
 }: BoardsWrapperProps) => {
   const calculateClues = React.useCallback(
     (types: BoardType[] = ['setup', 'preview']) => {

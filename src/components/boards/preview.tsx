@@ -12,13 +12,7 @@ interface PreviewBoardProps {
   vClues: Clue[]
 }
 
-const PreviewBoard: React.FC<PreviewBoardProps> = ({
-  id,
-  styles = {},
-  board,
-  hClues,
-  vClues,
-}) => {
+const PreviewBoard: React.FC<PreviewBoardProps> = ({ id, styles = {}, board, hClues, vClues }) => {
   const draw = React.useCallback(
     (context: Context, canvas: Canvas) => {
       drawAll(context, board, hClues, vClues)
@@ -28,11 +22,7 @@ const PreviewBoard: React.FC<PreviewBoardProps> = ({
 
   return (
     <div id={styles[id]} className={styles['sketch-wrapper']}>
-      <SimpleSketch
-        id='setup-sketch'
-        className={styles['react-p5']}
-        draw={draw}
-      />
+      <SimpleSketch id='setup-sketch' className={styles['react-p5']} draw={draw} />
     </div>
   )
 }

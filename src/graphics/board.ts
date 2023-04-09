@@ -2,8 +2,7 @@ import { Context } from '@/components/sketch'
 
 import { Orientation, Point } from './primitives'
 import { BOARD_SIZE, BoardSymbol } from '@/game/constants'
-import GameBoard from '@/game/board'
-import { Clue } from '@/app/page'
+import GameBoard, { Clue } from '@/game/board'
 
 const SymbolColors: Record<string, string> = {
   [BoardSymbol.CHEST]: '#F2E1AF',

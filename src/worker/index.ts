@@ -110,8 +110,8 @@ const handleMessage = async (message: AppMessage) => {
   }
 }
 
-if (self) {
-  self.addEventListener('message', (event) => {
+if (typeof self !== 'undefined') {
+  addEventListener('message', (event) => {
     const message: AppMessage = event.data
 
     if (message.id !== 'appMessage') {
